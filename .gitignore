@@ -1,0 +1,26 @@
+# Ignore config.R
+config.R
+
+# Ignore all data files in "data" folder
+data/*
+
+# Allow essential dataset metadata to be tracked
+!data/SCD-modules.csv
+!data/README.md
+!data/data_instructions.md
+
+# Ignore BRFSS `.rds` and `.csv` files everywhere (except SCD-modules.csv)
+*.rds
+*.csv
+!SCD-modules.csv  # Ensure this is tracked in the main folder
+
+# Ignore extracted `.XPT` files and temporary processing directories
+unzipped/
+*.XPT
+.Rproj.user
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore R history files
+.Rhistory
