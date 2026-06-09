@@ -52,30 +52,31 @@ imp <- mice(df_subset, m = 5, maxit = 5, seed = 500, method = methods, predictor
 # Extract completed datasets from the imputation object
 imputed_data <- complete(imp, action = "all") 
 
-# Add back in survey variables and create ACE summary variables
+# Add back survey vars, create ACESUM / ACES4 without altering ACE factor types,
+# then place them right before the other ACE* vars (but after survey vars)
 imputed_data <- lapply(imputed_data, function(df_imp) {
+  # Bind survey vars back on
   df_full <- bind_cols(df %>% select(all_of(survey_vars)), df_imp)
   
+  # Identify ACE item variables (exclude the two summary vars if they exist)
+  ace_vars <- grep("^ACE", names(df_full), value = TRUE)
+  ace_vars <- setdiff(ace_vars, c("ACESUM", "ACES4"))
+  
+  # Create summaries WITHOUT recoding the ACE items globally
   df_full <- df_full %>%
-    mutate(across(starts_with("ACE"), ~ as.numeric(. == "Yes"))) %>%
     mutate(
-      ACES_SUM = rowSums(select(., starts_with("ACE")), na.rm = TRUE),
-      ACES4 = factor(if_else(ACES_SUM >= 4, "Yes", "No"), levels = c("No", "Yes"))
+      ACESUM = rowSums(across(all_of(ace_vars), ~ . == "Yes"), na.rm = TRUE),
+      ACES4  = factor(if_else(ACESUM >= 4, "Yes", "No"), levels = c("No", "Yes"))
     )
   
-  return(df_full)
-})
-
-# Reorder columns so ACES_SUM and ACES4 come before the other ACE variables
-imputed_data <- lapply(imputed_data, function(df_imp) {
-  ace_vars <- grep("^ACE", names(df_imp), value = TRUE)           # all ACE variables
-  ace_vars <- setdiff(ace_vars, c("ACES_SUM", "ACES4"))           # drop the two new ones from the list
+  # Reorder: survey vars → ACESUM/ACES4 → the other ACE* items → everything else
+  other_vars <- setdiff(names(df_full), c(survey_vars, "ACESUM", "ACES4", ace_vars))
   
-  df_imp %>%
-    select(ACES_SUM, ACES4, all_of(ace_vars), everything()) %>%
+  df_full %>%
+    select(all_of(survey_vars), ACESUM, ACES4, all_of(ace_vars), all_of(other_vars)) %>%
     labelled::set_variable_labels(
-      ACES_SUM = "Total number of ACEs (0–13)",
-      ACES4    = "Four or more ACEs (binary)"
+      ACESUM = "Total number of ACEs (0–13)",
+      ACES4  = "Four or more ACEs (binary)"
     )
 })
 

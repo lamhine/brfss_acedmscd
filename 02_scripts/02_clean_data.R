@@ -104,9 +104,7 @@ df <- df %>%
     INCOME = case_when(
       INCOME %in% c(77, 99) ~ NA_real_, 
       INCOME %in% c(8, 9, 10, 11) ~ 8,  # Collapsing categories
-      TRUE ~ INCOME),
-    # Coerce relevant variables to factor
-    across(c(STATE, AGEG5YR:INCOME), as.factor)
+      TRUE ~ INCOME)
     )
 
 # Recode confounder variables
@@ -198,12 +196,12 @@ df <- df %>%
 df <- df %>%
   mutate(
     DIAB = case_when(
-      DIABTYPE == 1 ~ "No",   # Type 1 diabetes
+      DIABTYPE == 1 ~ "Type 1",   # Type 1 diabetes
       DIABETE4 == 1 ~ "Yes",  # Type 2 diabetes
       DIABETE4 %in% c(2, 3, 4) ~ "No",
       TRUE ~ NA_character_
     ),
-    DIAB = factor(DIAB, levels = c("No", "Yes"))
+    DIAB = factor(DIAB, levels = c("No", "Yes", "Type 1"))
   ) %>% 
   select(-DIABETE4, -DIABTYPE) %>% 
   relocate(DIAB, .after = ACEADNED)
@@ -241,18 +239,18 @@ df <- df %>%
       INCOME == 5 ~ "$25,000 to < $35,000",
       INCOME == 6 ~ "$35,000 to < $50,000",
       INCOME == 7 ~ "$50,000 to < $75,000",
-      INCOME == 8 ~ "$100,000 or more",
+      INCOME == 8 ~ "$75,000 or more",
       TRUE ~ NA_character_),
     INCOME = factor(
       INCOME, levels = c(
         "Less than $10,000", "$10,000 to < $15,000", "$15,000 to < $20,000",
         "$20,000 to < $25,000", "$25,000 to < $35,000", "$35,000 to < $50,000",
-        "$50,000 to < $75,000","$100,000 or more")),
+        "$50,000 to < $75,000","$75,000 or more")),
     
     POORHLTH = as.numeric(as.character(POORHLTH)),
     POORHLTH = case_when(
       POORHLTH %in% 15:30 ~ "Yes", # 15+ days 
-      POORHLTH %in% 1:14 ~ "No",   # 14 or fewer days 
+      POORHLTH %in% 0:14 ~ "No",   # 14 or fewer days 
       TRUE ~ NA_character_),
     POORHLTH = factor(POORHLTH, levels = c("No", "Yes")),
     
@@ -344,7 +342,7 @@ var_label(df) <- list(
   MEMLOSS = "Subjective cognitive decline",
   EDUCA = "Educational attainment",
   INCOME = "Income level",
-  POORHLTH = "Poor health prevented usual activites most days",
+  POORHLTH = "Poor health prevented usual activities most days",
   ADDEPEV3 = "Depressive disorder",
   SMOKER3 = "Smoking status",
   EXERANY2 = "Any exercise in last 30 days",

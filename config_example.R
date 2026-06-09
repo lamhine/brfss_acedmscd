@@ -37,8 +37,13 @@ message("Using results directory", results_dir)
 # Load some commonly used packages (update or comment out if not preferred)
 library(rstudioapi)
 library(tidyverse)
+library(haven)
+library(labelled)
 library(summarytools)
 library(janitor)
+library(mice)
+library(future)
+library(brms)
 
 # Suppress scientific notation for cleaner output
 options(scipen = 999)
